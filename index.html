@@ -2693,12 +2693,6 @@
             return;
         }
 
-        // Validate file size (max 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            showToast('Ukuran foto maksimal 2MB!', 'warning');
-            return;
-        }
-
         const reader = new FileReader();
         reader.onload = function(e) {
             // Compress image to reduce localStorage usage
