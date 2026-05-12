@@ -1043,6 +1043,48 @@
             /* ---- Bottom Nav Polish ---- */
             .bottom-nav {
                 padding: 0.5rem 0 env(safe-area-inset-bottom, 0.75rem) !important;
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                background: rgba(var(--bg-card-rgb, 255,255,255), 0.85) !important;
+                border-top: 1px solid rgba(var(--border-rgb, 0,0,0), 0.08);
+            }
+
+            .dark-mode .bottom-nav {
+                background: rgba(15, 18, 30, 0.9) !important;
+                border-top: 1px solid rgba(255,255,255,0.06);
+            }
+
+            /* ---- Scrollbar & Smooth ---- */
+            html { scroll-behavior: smooth; }
+            
+            /* ---- Hide filter labels on mobile ---- */
+            .list-header > div:last-child > span {
+                display: none;
+            }
+
+            /* ---- Header overflow protection ---- */
+            .header-actions {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                flex-shrink: 0;
+            }
+            .header-actions::-webkit-scrollbar { display: none; }
+
+            /* ---- Summary grid: better mobile fit ---- */
+            .summary-card h3 {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            /* ---- Transaction table horizontal scroll ---- */
+            .transaction-list { overflow: hidden; }
+
+            /* ---- Photo upload area compact ---- */
+            .photo-upload-area {
+                padding: 1rem !important;
+                min-height: unset !important;
             }
         }
 
