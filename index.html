@@ -540,19 +540,17 @@
             animation: none;
         }
 
-        /* Bottom Nav Mobile */
+        /* Bottom Nav Mobile Polish */
         .bottom-nav {
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            background: var(--bg-card-glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: var(--bg-card);
             border-top: 1px solid var(--border);
-            display: none; /* Hidden by default */
+            display: none;
             justify-content: space-around;
-            padding: 0.65rem 0.25rem 1.8rem; /* Extra bottom padding for iOS safe area */
+            padding: 0.6rem 0 calc(0.6rem + env(safe-area-inset-bottom, 0));
             z-index: 1000;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
 
         .nav-item {
@@ -564,18 +562,52 @@
             cursor: pointer;
             transition: var(--transition);
             flex: 1;
+            padding: 0.2rem 0;
         }
 
-        .nav-item i { width: 20px; height: 20px; }
-        .nav-item span { font-size: 0.65rem; font-weight: 600; }
+        .nav-item i { 
+            width: 22px; height: 22px; 
+            stroke-width: 2px;
+            transition: var(--transition);
+        }
+        
+        .nav-item span { 
+            font-size: 0.68rem; 
+            font-weight: 500;
+            transition: var(--transition);
+        }
         
         .nav-item.active {
             color: var(--primary);
         }
 
         .nav-item.active i {
-            transform: translateY(-2px);
-            filter: drop-shadow(0 2px 4px var(--primary-glow));
+            transform: scale(1.1);
+            color: var(--primary);
+        }
+
+        .nav-item.active span {
+            font-weight: 700;
+        }
+
+        /* Badge Style */
+        .nav-badge {
+            position: absolute;
+            top: -2px;
+            right: 25%;
+            background: var(--danger);
+            color: white;
+            font-size: 0.6rem;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            border: 2px solid var(--bg-card);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         /* Profile Selection Screen */
         #profile-screen {
@@ -1341,19 +1373,20 @@
 <div class="bottom-nav">
     <div class="nav-item active" onclick="switchTab('daily')">
         <i data-lucide="home"></i>
-        <span>Home</span>
+        <span>Beranda</span>
     </div>
     <div class="nav-item" onclick="switchTab('budget')">
-        <i data-lucide="pie-chart"></i>
-        <span>Budget</span>
+        <i data-lucide="bar-chart-2"></i>
+        <span>Laporan</span>
     </div>
     <div class="nav-item" onclick="switchTab('wallets')">
         <i data-lucide="wallet"></i>
-        <span>Wallet</span>
+        <span>Dompet</span>
     </div>
-    <div class="nav-item" onclick="switchTab('recurring')">
-        <i data-lucide="refresh-cw"></i>
+    <div class="nav-item" onclick="switchTab('recurring')" style="position: relative;">
+        <i data-lucide="calendar-clock"></i>
         <span>Rutin</span>
+        <span id="recurring-badge" class="nav-badge" style="display: none;">0</span>
     </div>
 </div>
 
@@ -1778,7 +1811,21 @@
         renderCharts();
         renderBudgets();
         renderTransactions();
+        renderBadges();
         lucide.createIcons();
+    }
+
+    function renderBadges() {
+        const recurringCount = state.recurring.length;
+        const badge = document.getElementById('recurring-badge');
+        if (badge) {
+            if (recurringCount > 0) {
+                badge.textContent = recurringCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
     }
 
     function renderWelcome() {
