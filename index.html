@@ -539,6 +539,44 @@
             background: linear-gradient(135deg, var(--primary-hover), #5b21b6);
             animation: none;
         }
+
+        /* Bottom Nav Mobile */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--bg-card-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            display: none; /* Hidden by default */
+            justify-content: space-around;
+            padding: 0.65rem 0.25rem 1.8rem; /* Extra bottom padding for iOS safe area */
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1;
+        }
+
+        .nav-item i { width: 20px; height: 20px; }
+        .nav-item span { font-size: 0.65rem; font-weight: 600; }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item.active i {
+            transform: translateY(-2px);
+            filter: drop-shadow(0 2px 4px var(--primary-glow));
+        }
         /* Profile Selection Screen */
         #profile-screen {
             position: fixed; inset: 0; z-index: 9999;
@@ -872,7 +910,7 @@
 
         /* ========== MOBILE (max 480px) ========== */
         @media (max-width: 480px) {
-            .container { padding: 0 0.75rem 0.75rem; }
+            .container { padding: 0 0.75rem 5rem; } /* Added bottom padding for nav */
 
             header {
                 margin-left: -0.75rem;
@@ -900,8 +938,8 @@
 
             .card { padding: 1rem; border-radius: 0.85rem; }
 
-            .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .tab-btn { padding: 0.4rem 0.7rem; font-size: 0.72rem; }
+            .tabs { display: none; } /* Hide old tabs on mobile, use bottom nav */
+            .bottom-nav { display: flex; }
 
             .transaction-table th { font-size: 0.7rem; padding: 0.5rem 0.4rem; }
             .transaction-table td { padding: 0.6rem 0.4rem; font-size: 0.78rem; }
@@ -918,7 +956,7 @@
                 display: none;
             }
 
-            .fab { width: 3rem; height: 3rem; bottom: 1.25rem; right: 1.25rem; }
+            .fab { width: 3rem; height: 3rem; bottom: 5rem; right: 1.25rem; } /* Lifted FAB above bottom nav */
 
             .modal-content {
                 margin: 0.5rem;
@@ -1197,6 +1235,26 @@
 <button class="fab" id="open-add-modal" title="Tambah Transaksi (N)">
     <i data-lucide="plus"></i>
 </button>
+
+<!-- Bottom Navigation for Mobile -->
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('daily')">
+        <i data-lucide="home"></i>
+        <span>Home</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('budget')">
+        <i data-lucide="pie-chart"></i>
+        <span>Budget</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('wallets')">
+        <i data-lucide="wallet"></i>
+        <span>Wallet</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('recurring')">
+        <i data-lucide="refresh-cw"></i>
+        <span>Rutin</span>
+    </div>
+</div>
 
 <!-- Add/Edit Transaction Modal -->
 <div class="modal" id="transaction-modal">
@@ -1674,6 +1732,16 @@
     function renderTabs() {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === state.activeTab);
+        });
+
+        // Update Bottom Nav active state
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const onclick = item.getAttribute('onclick');
+            if (onclick && onclick.includes(`'${state.activeTab}'`)) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
         });
     }
 
