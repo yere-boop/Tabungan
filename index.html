@@ -1028,51 +1028,71 @@
         </div>
     </header>
 
-    <!-- Summary Balance -->
+    <!-- Dashboard Welcome -->
+    <div class="dashboard-welcome animate-fade" style="margin-bottom: 1.5rem;">
+        <h2 id="welcome-greeting" style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.25rem;">Selamat Datang! 👋</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;" id="welcome-date"></p>
+    </div>
+
+    <!-- Section: Ringkasan Keuangan -->
+    <div class="section-header animate-fade" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+        <i data-lucide="bar-chart-3" size="18" style="color: var(--primary);"></i>
+        <h3 style="font-size: 1rem; font-weight: 700;">Ringkasan Keuangan</h3>
+    </div>
     <div class="summary-grid">
         <div class="card summary-card income animate-fade" style="animation-delay: 0.1s">
-            <h3>Total Pemasukan</h3>
+            <h3>💰 Total Pemasukan</h3>
             <div class="value" id="total-income">Rp 0</div>
         </div>
         <div class="card summary-card expense animate-fade" style="animation-delay: 0.2s">
-            <h3>Total Pengeluaran</h3>
+            <h3>💸 Total Pengeluaran</h3>
             <div class="value" id="total-expense">Rp 0</div>
         </div>
         <div class="card summary-card balance animate-fade" style="animation-delay: 0.3s">
-            <h3>Sisa Saldo</h3>
+            <h3>🏦 Sisa Saldo</h3>
             <div class="value" id="total-balance">Rp 0</div>
         </div>
         <div class="card summary-card average animate-fade" style="animation-delay: 0.4s">
-            <h3>Rata-rata Harian</h3>
+            <h3>📊 Rata-rata Harian</h3>
             <div class="value" id="avg-daily">Rp 0</div>
         </div>
         <div class="card summary-card prediction animate-fade" style="animation-delay: 0.5s">
-            <h3>Prediksi Sisa Bulan</h3>
+            <h3>🔮 Prediksi Sisa Bulan</h3>
             <div class="value" id="prediction-end">Rp 0</div>
         </div>
     </div>
 
-    <!-- Analytics Section -->
+    <!-- Section: Analisis & Grafik -->
+    <div class="section-header animate-fade" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; margin-top: 0.5rem;">
+        <i data-lucide="pie-chart" size="18" style="color: var(--primary);"></i>
+        <h3 style="font-size: 1rem; font-weight: 700;">Analisis & Grafik</h3>
+    </div>
+
     <div class="tabs">
-        <button class="tab-btn active" data-tab="daily">Harian</button>
-        <button class="tab-btn" data-tab="weekly">Mingguan</button>
-        <button class="tab-btn" data-tab="monthly">Bulanan</button>
-        <button class="tab-btn" data-tab="budget">Anggaran</button>
-        <button class="tab-btn" data-tab="wallets">Dompet</button>
-        <button class="tab-btn" data-tab="recurring">Rutin</button>
+        <button class="tab-btn active" data-tab="daily">📅 Harian</button>
+        <button class="tab-btn" data-tab="weekly">📆 Mingguan</button>
+        <button class="tab-btn" data-tab="monthly">🗓️ Bulanan</button>
+        <button class="tab-btn" data-tab="budget">💼 Anggaran</button>
+        <button class="tab-btn" data-tab="wallets">👛 Dompet</button>
+        <button class="tab-btn" data-tab="recurring">🔄 Rutin</button>
     </div>
 
     <div id="tab-content">
-        <!-- Daily/Weekly/Monthly Content injected by JS -->
         <div class="main-grid">
             <div class="card animate-fade">
-                <h3 style="margin-bottom: 1rem;" id="chart-title">Tren Pengeluaran</h3>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <i data-lucide="trending-up" size="18" style="color: var(--primary);"></i>
+                    <h3 style="font-weight: 700;" id="chart-title">Tren Pengeluaran</h3>
+                </div>
                 <div class="chart-container">
                     <canvas id="mainChart"></canvas>
                 </div>
             </div>
             <div class="card animate-fade" style="animation-delay: 0.1s">
-                <h3 style="margin-bottom: 1rem;">Proporsi Kategori</h3>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <i data-lucide="pie-chart" size="18" style="color: var(--warning);"></i>
+                    <h3 style="font-weight: 700;">Proporsi Kategori</h3>
+                </div>
                 <div class="chart-container">
                     <canvas id="pieChart"></canvas>
                 </div>
@@ -1081,7 +1101,10 @@
 
         <div class="main-grid">
             <div class="card animate-fade">
-                <h3 style="margin-bottom: 1rem;">Statistik per Kategori</h3>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <i data-lucide="bar-chart-2" size="18" style="color: var(--info);"></i>
+                    <h3 style="font-weight: 700;">Statistik per Kategori</h3>
+                </div>
                 <div class="chart-container">
                     <canvas id="categoryChart"></canvas>
                 </div>
@@ -1105,7 +1128,10 @@
             
             <div class="card animate-fade" style="animation-delay: 0.2s">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h3>Anggaran (Budget)</h3>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="wallet" size="18" style="color: var(--success);"></i>
+                        <h3 style="font-weight: 700;">Anggaran (Budget)</h3>
+                    </div>
                     <button class="btn btn-outline btn-icon" id="edit-budget" title="Atur Anggaran">
                         <i data-lucide="settings"></i>
                     </button>
@@ -1117,10 +1143,14 @@
         </div>
     </div>
 
-    <!-- Transaction List Section -->
+    <!-- Section: Riwayat Transaksi -->
+    <div class="section-header animate-fade" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; margin-top: 0.5rem;">
+        <i data-lucide="list" size="18" style="color: var(--primary);"></i>
+        <h3 style="font-size: 1rem; font-weight: 700;">Riwayat Transaksi</h3>
+    </div>
+
     <div class="card transaction-list animate-fade" style="animation-delay: 0.3s">
         <div class="list-header">
-            <h3>Daftar Transaksi</h3>
             <div class="search-box">
                 <i data-lucide="search"></i>
                 <input type="text" class="form-control" id="search-input" placeholder="Cari nama, kategori, atau catatan...">
@@ -1576,12 +1606,31 @@
 
     // UI Rendering Functions
     function render() {
+        renderWelcome();
         renderSummary();
         renderTabs();
         renderCharts();
         renderBudgets();
         renderTransactions();
         lucide.createIcons();
+    }
+
+    function renderWelcome() {
+        const now = new Date();
+        const hour = now.getHours();
+        let greeting = 'Selamat Malam';
+        if (hour < 12) greeting = 'Selamat Pagi';
+        else if (hour < 15) greeting = 'Selamat Siang';
+        else if (hour < 18) greeting = 'Selamat Sore';
+        
+        const profileName = isCombinedView ? 'Cayla & Yeremia' : (PROFILES[activeProfile]?.name || 'User');
+        const welcomeEl = document.getElementById('welcome-greeting');
+        if (welcomeEl) welcomeEl.textContent = `${greeting}, ${profileName}! 👋`;
+        
+        const dateEl = document.getElementById('welcome-date');
+        if (dateEl) dateEl.textContent = now.toLocaleDateString('id-ID', { 
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
+        });
     }
 
     function renderSummary() {
