@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cayla Finance - Pencatat Pengeluaran Harian</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -186,7 +186,7 @@
         /* Dashboard Summary */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -2776,6 +2776,24 @@
     window.closePhotoViewer = closePhotoViewer;
     window.handlePhotoSelect = handlePhotoSelect;
     window.removePhoto = removePhoto;
+
+    // Global switchTab function for bottom nav onclick
+    function switchTab(tab) {
+        if (tab === 'budget') {
+            openBudgetModal();
+            state.activeTab = 'daily';
+        } else if (tab === 'wallets') {
+            openWalletsModal();
+            state.activeTab = 'daily';
+        } else if (tab === 'recurring') {
+            openRecurringModal();
+            state.activeTab = 'daily';
+        } else {
+            state.activeTab = tab;
+        }
+        render();
+    }
+    window.switchTab = switchTab;
 
     // Initial load
     initCategoryFilter();
