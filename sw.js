@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cayla-finance-v3';
+const CACHE_NAME = 'cayla-finance-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -10,8 +10,9 @@ const ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
 ];
 
-// Install Service Worker
+// Install & Force Activation
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS);
@@ -19,11 +20,26 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Fetch Assets
+// Cleanup Old Caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+// Network First Strategy (Selalu ambil data terbaru jika online)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
     })
   );
 });
