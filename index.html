@@ -670,6 +670,11 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 2.2rem; font-weight: 800; margin: 0 auto 1rem;
             box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            overflow: hidden; /* Tambahkan ini agar foto tidak keluar dari lingkaran */
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        .profile-avatar img {
+            width: 100%; height: 100%; object-fit: cover;
         }
         .profile-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
         .profile-card p { font-size: 0.8rem; color: #94a3b8; }
@@ -704,6 +709,9 @@
         .profile-badge-dot {
             width: 10px; height: 10px; border-radius: 50%;
             box-shadow: 0 0 6px currentColor;
+            background-size: cover;
+            background-position: center;
+            transition: var(--transition);
         }
 
         /* Custom Scrollbar */
@@ -1123,15 +1131,16 @@
         <h1>💰 Cayla Finance</h1>
         <p>Pilih profil Anda untuk melanjutkan</p>
     </div>
-    <div class="profile-cards">
+    <div class="profile-cards" id="profile-cards-container">
+        <!-- Cards will be injected by JS to support images -->
         <div class="profile-card" onclick="selectProfile('cayla')">
-            <div class="profile-avatar" style="background: linear-gradient(135deg, #ec4899, #f472b6);">👩</div>
+            <div class="profile-avatar" id="avatar-render-cayla" style="background: linear-gradient(135deg, #ec4899, #f472b6);">👩</div>
             <h3>Cayla Devita</h3>
             <p>Botu</p>
             <p id="preview-balance-cayla" style="font-size: 0.8rem; margin-top: 0.5rem; font-weight: 600;"></p>
         </div>
         <div class="profile-card" onclick="selectProfile('yeremia')">
-            <div class="profile-avatar" style="background: linear-gradient(135deg, #6366f1, #818cf8);">👨</div>
+            <div class="profile-avatar" id="avatar-render-yeremia" style="background: linear-gradient(135deg, #6366f1, #818cf8);">👨</div>
             <h3>Yeremia Milano</h3>
             <p>Mawuntu</p>
             <p id="preview-balance-yeremia" style="font-size: 0.8rem; margin-top: 0.5rem; font-weight: 600;"></p>
@@ -1567,9 +1576,33 @@
     };
 
     const PROFILES = {
-        cayla: { key: 'cayla', name: 'Cayla Devita', fullName: 'Cayla Devita Botu', color: '#ec4899', initials: 'CD', emoji: '👩' },
-        yeremia: { key: 'yeremia', name: 'Yeremia Milano', fullName: 'Yeremia Milano Mawuntu', color: '#6366f1', initials: 'YM', emoji: '👨' },
-        combined: { key: 'combined', name: 'Gabungan', fullName: 'Cayla + Yeremia', color: '#f59e0b', initials: '👫', emoji: '🔗' }
+        cayla: { 
+            key: 'cayla', 
+            name: 'Cayla Devita', 
+            fullName: 'Cayla Devita Botu', 
+            color: '#ec4899', 
+            initials: 'CD', 
+            emoji: '👩',
+            image: null // << TARUH LINK FOTO DI SINI, misal: 'https://images.com/foto.jpg' atau 'img/foto.jpg'
+        },
+        yeremia: { 
+            key: 'yeremia', 
+            name: 'Yeremia Milano', 
+            fullName: 'Yeremia Milano Mawuntu', 
+            color: '#6366f1', 
+            initials: 'YM', 
+            emoji: '👨',
+            image: null // << TARUH LINK FOTO DI SINI
+        },
+        combined: { 
+            key: 'combined', 
+            name: 'Gabungan', 
+            fullName: 'Cayla + Yeremia', 
+            color: '#f59e0b', 
+            initials: '👫', 
+            emoji: '🔗',
+            image: null 
+        }
     };
 
     // ==========================================
@@ -1726,7 +1759,21 @@
 
         // Update header UI
         const profile = PROFILES[profileKey];
-        document.getElementById('profile-dot').style.background = profile.color;
+        const badgeIcon = document.getElementById('profile-dot');
+        if (profile.image) {
+            badgeIcon.style.backgroundImage = `url(${profile.image})`;
+            badgeIcon.style.width = '22px';
+            badgeIcon.style.height = '22px';
+            badgeIcon.style.boxShadow = 'none';
+        } else {
+            badgeIcon.style.backgroundImage = 'none';
+            badgeIcon.style.background = profile.color;
+            badgeIcon.style.width = '10px';
+            badgeIcon.style.height = '10px';
+            badgeIcon.style.boxShadow = '0 0 6px currentColor';
+        }
+        
+        document.getElementById('profile-dot').style.background = profile.image ? 'transparent' : profile.color;
         document.getElementById('profile-name-header').textContent = profile.name;
 
         // Show/hide action buttons based on combined view
@@ -1856,7 +1903,22 @@
     function showProfileScreen() {
         // Update balance preview on profile cards
         updateProfileCardPreviews();
+        updateProfileAvatars();
         document.getElementById('profile-screen').classList.remove('hidden');
+    }
+
+    function updateProfileAvatars() {
+        ['cayla', 'yeremia'].forEach(key => {
+            const profile = PROFILES[key];
+            const container = document.getElementById(`avatar-render-${key}`);
+            if (container) {
+                if (profile.image) {
+                    container.innerHTML = `<img src="${profile.image}" alt="${profile.name}">`;
+                } else {
+                    container.innerHTML = profile.emoji;
+                }
+            }
+        });
     }
 
     async function updateProfileCardPreviews() {
