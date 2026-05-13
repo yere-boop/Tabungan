@@ -1591,11 +1591,11 @@
     let cloudListeners = [];
 
     // Inisialisasi Firebase
-    function initFirebase() {
+    async function initFirebase() {
         if (firebaseConfig.apiKey === "YOUR_API_KEY") {
             console.log("Firebase belum dikonfigurasi.");
             updateSyncStatus('not-configured');
-            return;
+            return false;
         }
 
         try {
@@ -1604,9 +1604,11 @@
             syncEnabled = true;
             updateSyncStatus('online');
             console.log("Firebase Connected!");
+            return true;
         } catch (error) {
             console.error("Firebase Init Error:", error);
             updateSyncStatus('error');
+            return false;
         }
     }
 
@@ -1852,12 +1854,27 @@
         document.getElementById('profile-screen').classList.remove('hidden');
     }
 
-    function updateProfileCardPreviews() {
-        ['cayla', 'yeremia'].forEach(key => {
+    async function updateProfileCardPreviews() {
+        ['cayla', 'yeremia'].forEach(async (key) => {
+            // Local fallback
             const data = loadProfileData(key);
-            const income = data.transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-            const expense = data.transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-            const balance = income - expense;
+            const localIncome = data.transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+            const localExpense = data.transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+            let balance = localIncome - localExpense;
+
+            // Cloud fetch
+            if (syncEnabled) {
+                try {
+                    const doc = await db.collection("families").doc(FAMILY_ID).collection("profiles").doc(key).get();
+                    if (doc.exists) {
+                        const cloudData = doc.data();
+                        const cIncome = (cloudData.transactions || []).filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+                        const cExpense = (cloudData.transactions || []).filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                        balance = cIncome - cExpense;
+                    }
+                } catch (e) { console.log("Preview fetch error", e); }
+            }
+
             const el = document.getElementById(`preview-balance-${key}`);
             if (el) {
                 el.textContent = `Saldo: ${formatRp(balance)}`;
@@ -1880,7 +1897,9 @@
             showProfileScreen();
         }
 
-        initFirebase();
+        initFirebase().then(() => {
+            if (syncEnabled) updateProfileCardPreviews();
+        });
         setupEventListeners();
     });
 
