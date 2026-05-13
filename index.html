@@ -1649,6 +1649,28 @@
 
     // Load profile-specific data from localStorage
     function loadProfileData(profileKey) {
+        if (profileKey === 'combined') {
+            const caylaData = loadProfileData('cayla');
+            const yeremiaData = loadProfileData('yeremia');
+            
+            // Merge budgets
+            const mergedBudgets = { ...DEFAULT_BUDGETS };
+            CATEGORIES.forEach(cat => {
+                mergedBudgets[cat] = (caylaData.budgets[cat] || 0) + (yeremiaData.budgets[cat] || 0);
+            });
+
+            // Merge wallets (deduplicate by id)
+            const walletMap = new Map();
+            caylaData.wallets.forEach(w => walletMap.set(w.id, w));
+            yeremiaData.wallets.forEach(w => walletMap.set(w.id, w));
+
+            return {
+                transactions: [...caylaData.transactions, ...yeremiaData.transactions],
+                budgets: mergedBudgets,
+                wallets: Array.from(walletMap.values()),
+                recurring: [...caylaData.recurring, ...yeremiaData.recurring]
+            };
+        }
         return {
             transactions: JSON.parse(localStorage.getItem(`transactions_${profileKey}`)) || [],
             budgets: JSON.parse(localStorage.getItem(`budgets_${profileKey}`)) || { ...DEFAULT_BUDGETS },
@@ -1696,29 +1718,11 @@
         isCombinedView = (profileKey === 'combined');
         localStorage.setItem('activeProfile', profileKey);
 
-        if (isCombinedView) {
-            // Merge both profiles' data for read-only view
-            const caylaData = loadProfileData('cayla');
-            const yeremiaData = loadProfileData('yeremia');
-            state.transactions = [...caylaData.transactions, ...yeremiaData.transactions];
-            // Use Cayla's budgets as base but merge
-            state.budgets = { ...DEFAULT_BUDGETS };
-            CATEGORIES.forEach(cat => {
-                state.budgets[cat] = (caylaData.budgets[cat] || 0) + (yeremiaData.budgets[cat] || 0);
-            });
-            // Merge wallets (deduplicate by id)
-            const walletMap = new Map();
-            caylaData.wallets.forEach(w => walletMap.set(w.id, w));
-            yeremiaData.wallets.forEach(w => walletMap.set(w.id, w));
-            state.wallets = Array.from(walletMap.values());
-            state.recurring = [...caylaData.recurring, ...yeremiaData.recurring];
-        } else {
-            const profileData = loadProfileData(profileKey);
-            state.transactions = profileData.transactions;
-            state.budgets = profileData.budgets;
-            state.wallets = profileData.wallets;
-            state.recurring = profileData.recurring;
-        }
+        const profileData = loadProfileData(profileKey);
+        state.transactions = profileData.transactions;
+        state.budgets = profileData.budgets;
+        state.wallets = profileData.wallets;
+        state.recurring = profileData.recurring;
 
         // Update header UI
         const profile = PROFILES[profileKey];
