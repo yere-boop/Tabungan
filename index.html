@@ -1152,6 +1152,12 @@
             </div>
         </div>
         <div class="header-actions">
+            <!-- Sync Status Indicator -->
+            <div id="sync-status" class="profile-badge" style="cursor: default; border-color: transparent; background: transparent; box-shadow: none; display: none;">
+                <div class="profile-badge-dot" id="sync-dot" style="background: var(--secondary); width: 8px; height: 8px;"></div>
+                <span id="sync-text" style="font-size: 0.7rem; color: var(--text-muted); font-weight: 500;">Offline</span>
+            </div>
+
             <button class="btn btn-outline btn-icon" id="theme-toggle" title="Ganti Tema">
                 <i data-lucide="moon" id="theme-icon"></i>
             </button>
@@ -1543,6 +1549,10 @@
     <div style="color: rgba(255,255,255,0.6); font-size: 0.8rem;">Klik di luar gambar untuk menutup</div>
 </div>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
 <script>
     // Constants & State
     const CATEGORIES = ["Makanan", "Transportasi", "Belanja", "Kesehatan", "Hiburan", "Tagihan", "Lainnya"];
@@ -1561,6 +1571,74 @@
         yeremia: { key: 'yeremia', name: 'Yeremia Milano', fullName: 'Yeremia Milano Mawuntu', color: '#6366f1', initials: 'YM', emoji: '👨' },
         combined: { key: 'combined', name: 'Gabungan', fullName: 'Cayla + Yeremia', color: '#f59e0b', initials: '👫', emoji: '🔗' }
     };
+
+    // ==========================================
+    // ☁️ FIREBASE CONFIGURATION
+    // ==========================================
+    // SILAKAN PASTE FIREBASE CONFIG ANDA DI SINI:
+    const firebaseConfig = {
+        apiKey: "AIzaSyC58imVozrDrTyAJYNjVgjK8TZulR3t_I",
+        authDomain: "cayla-finance.firebaseapp.com",
+        projectId: "cayla-finance",
+        storageBucket: "cayla-finance.firebasestorage.app",
+        messagingSenderId: "1054338531549",
+        appId: "1:1054338531549:web:554542781637b39b295b34"
+    };
+
+    const FAMILY_ID = "CaylaYeremiaFamily"; // ID unik untuk keluarga Anda
+    let db = null;
+    let syncEnabled = false;
+    let cloudListeners = [];
+
+    // Inisialisasi Firebase
+    function initFirebase() {
+        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+            console.log("Firebase belum dikonfigurasi.");
+            updateSyncStatus('not-configured');
+            return;
+        }
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            syncEnabled = true;
+            updateSyncStatus('online');
+            console.log("Firebase Connected!");
+        } catch (error) {
+            console.error("Firebase Init Error:", error);
+            updateSyncStatus('error');
+        }
+    }
+
+    function updateSyncStatus(status) {
+        const dot = document.getElementById('sync-dot');
+        const text = document.getElementById('sync-text');
+        const container = document.getElementById('sync-status');
+        
+        container.style.display = 'flex';
+        
+        switch(status) {
+            case 'online':
+                dot.style.background = 'var(--success)';
+                text.textContent = 'Terhubung';
+                break;
+            case 'syncing':
+                dot.style.background = 'var(--warning)';
+                text.textContent = 'Sinkron...';
+                break;
+            case 'offline':
+                dot.style.background = 'var(--secondary)';
+                text.textContent = 'Offline';
+                break;
+            case 'error':
+                dot.style.background = 'var(--danger)';
+                text.textContent = 'Sync Error';
+                break;
+            case 'not-configured':
+                container.style.display = 'none';
+                break;
+        }
+    }
 
     // Active profile tracking
     let activeProfile = localStorage.getItem('activeProfile') || null;
@@ -1661,7 +1739,80 @@
         // Hide profile screen, show dashboard
         document.getElementById('profile-screen').classList.add('hidden');
         processRecurring();
+        
+        // Start cloud sync for this profile
+        if (syncEnabled) {
+            setupCloudSync(profileKey);
+        }
+
         render();
+    }
+
+    // Cloud Sync Logic
+    function setupCloudSync(profileKey) {
+        // Stop previous listeners
+        cloudListeners.forEach(unsubscribe => unsubscribe());
+        cloudListeners = [];
+
+        if (profileKey === 'combined') {
+            // Listen to both
+            cloudListeners.push(listenToProfile('cayla'));
+            cloudListeners.push(listenToProfile('yeremia'));
+        } else {
+            // Listen only to active profile
+            cloudListeners.push(listenToProfile(profileKey));
+        }
+    }
+
+    function listenToProfile(profileKey) {
+        updateSyncStatus('syncing');
+        return db.collection("families").doc(FAMILY_ID).collection("profiles").doc(profileKey)
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    const cloudData = doc.data();
+                    
+                    // Merge cloud data with local data
+                    // For simplicity, we trust cloud as source of truth if newer
+                    // In a production app, you might want more complex merging
+                    localStorage.setItem(`transactions_${profileKey}`, JSON.stringify(cloudData.transactions || []));
+                    localStorage.setItem(`budgets_${profileKey}`, JSON.stringify(cloudData.budgets || { ...DEFAULT_BUDGETS }));
+                    localStorage.setItem(`wallets_${profileKey}`, JSON.stringify(cloudData.wallets || [...WALLETS_DEFAULT.map(w => ({...w}))]));
+                    localStorage.setItem(`recurring_${profileKey}`, JSON.stringify(cloudData.recurring || []));
+
+                    // If this profile is the active one (or we are in combined view), re-render
+                    if (activeProfile === profileKey || isCombinedView) {
+                        const updatedData = loadProfileData(activeProfile);
+                        state.transactions = updatedData.transactions;
+                        state.budgets = updatedData.budgets;
+                        state.wallets = updatedData.wallets;
+                        state.recurring = updatedData.recurring;
+                        render();
+                    }
+                    updateSyncStatus('online');
+                }
+            }, (error) => {
+                console.error("Snapshot Error:", error);
+                updateSyncStatus('error');
+            });
+    }
+
+    async function pushToCloud() {
+        if (!syncEnabled || isCombinedView || !activeProfile) return;
+
+        updateSyncStatus('syncing');
+        try {
+            await db.collection("families").doc(FAMILY_ID).collection("profiles").doc(activeProfile).set({
+                transactions: state.transactions,
+                budgets: state.budgets,
+                wallets: state.wallets,
+                recurring: state.recurring,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            updateSyncStatus('online');
+        } catch (error) {
+            console.error("Push to Cloud Error:", error);
+            updateSyncStatus('error');
+        }
     }
 
     function showCombinedBanner(show) {
@@ -1729,6 +1880,7 @@
             showProfileScreen();
         }
 
+        initFirebase();
         setupEventListeners();
     });
 
@@ -1744,6 +1896,9 @@
             localStorage.setItem(`budgets_${activeProfile}`, JSON.stringify(state.budgets));
             localStorage.setItem(`wallets_${activeProfile}`, JSON.stringify(state.wallets));
             localStorage.setItem(`recurring_${activeProfile}`, JSON.stringify(state.recurring));
+            
+            // Trigger sync to cloud
+            pushToCloud();
         }
         localStorage.setItem('theme', state.theme);
     }
