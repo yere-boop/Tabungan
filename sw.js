@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cayla-finance-v10';
+const CACHE_NAME = 'cayla-finance-v11';
 const ASSETS = [
   './',
   './index.html',
